@@ -118,4 +118,7 @@ inline Vec3 cross(const Vec3 &a, const Vec3 &b) {
     );
 }
 
+using Point3 = Vec3;
+using Color = Vec3;
+
 #endif
