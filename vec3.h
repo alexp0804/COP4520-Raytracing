@@ -34,7 +34,7 @@ class Vec3 {
             return std::sqrt(length_squared());
         }
 
-    // Vec3 Operators
+    // Vec3 operators
 
     // Negate
     Vec3 operator- () const { return Vec3(-e[0], -e[1], -e[2]); }
