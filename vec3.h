@@ -101,6 +101,13 @@ class Vec3 {
     }
 };
 
+inline Vec3 operator* (double s, Vec3 &v) {
+    return v * s;
+}
+inline Vec3 operator/ (double s, Vec3 &v) {
+    return v / s;
+}
+
 // Does NOT normalize the given vector, just returns the unit vector.
 inline Vec3 normalized(Vec3 a) {
     return a / a.length();
