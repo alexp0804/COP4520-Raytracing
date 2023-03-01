@@ -12,13 +12,13 @@ void write_color(std::ostream &out, Color pixel_color, int samples_per_pixel) {
 
     auto scale = 1.0 / samples_per_pixel;
 
-    r *= scale;
-    g *= scale;
-    b *= scale;
+    r = sqrt(scale * r);
+    g = sqrt(scale * g);
+    b = sqrt(scale * b);
 
-    out << (int) (255.999 * clamp(r, 0.0, 0.999)) << ' '
-        << (int) (255.999 * clamp(g, 0.0, 0.999)) << ' '
-        << (int) (255.999 * clamp(b, 0.0, 0.999)) << std::endl;
+    out << (int) (256 * clamp(r, 0.0, 0.999)) << ' '
+        << (int) (256 * clamp(g, 0.0, 0.999)) << ' '
+        << (int) (256 * clamp(b, 0.0, 0.999)) << std::endl;
 }
 
 #endif

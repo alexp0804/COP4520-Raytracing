@@ -14,11 +14,17 @@
 
 using namespace std;
 
-Color ray_color(Ray r, const Hittable& world) {
+Color ray_color(Ray r, const Hittable& world, int depth) {
     HitRecord rec;
 
-    if (world.hit(r, 0, infinity, rec)) {
-        Color c = (rec.normal + Color(1.0, 1.0, 1.0));
+    // When exceeding Ray Bounce Limit, stop gathering light
+    if (depth <= 0) {
+        return Color(0, 0, 0);
+    }
+
+    if (world.hit(r, 0.001, infinity, rec)) {
+        Point3 target = rec.p + rec.normal + random_in_hemisphere(rec.normal);
+        Color c = ray_color(Ray(rec.p, target - rec.p), world, depth - 1);
         return 0.5 * c;
     }
 
@@ -37,6 +43,7 @@ int main() {
     int img_width = 400;
     int img_height = (int) img_width / aspect_ratio;
     int samples_per_pixel = 100;
+    int max_depth = 50;
 
     // World
     HittableList world;
@@ -72,7 +79,7 @@ int main() {
                 auto v = (j + random_double()) / (img_height - 1);
 
                 Ray r = cam.get_ray(u, v);
-                pixel_color += ray_color(r, world);
+                pixel_color += ray_color(r, world, max_depth);
             }
 
             write_color(std::cout, pixel_color, samples_per_pixel);
