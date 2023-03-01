@@ -3,6 +3,7 @@
 
 #include "rt_utilities.h"
 #include "vec3.h"
+#include "ray.h"
 
 class Camera {
 public:

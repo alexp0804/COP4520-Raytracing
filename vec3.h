@@ -35,6 +35,12 @@ class Vec3 {
           return std::sqrt(length_squared());
         }
 
+        bool near_zero() const {
+            // Return true if the vector is close to zero in all dimensions.
+            const auto s = 1e-8;
+            return (fabs(e[0]) < s) && (fabs(e[1]) < s) && (fabs(e[2]) < s);
+        }
+
         // Vec3 operators
 
         // Negate
@@ -101,6 +107,7 @@ class Vec3 {
           return out << e[0] << ' ' << e[1] << ' ' << e[2] << std::endl;
         }
 
+        // Randoms
         inline static Vec3 random() {
           return Vec3(random_double(), random_double(), random_double());
         }
@@ -154,6 +161,10 @@ inline Vec3 random_in_hemisphere(Vec3 normal) {
 
 Vec3 random_unit_vector() {
   return normalized(random_in_unit_sphere());
+}
+
+Vec3 reflect(Vec3 v, Vec3 n) {
+  return v - 2 * dot(v,n) * n;
 }
 
 using Point3 = Vec3;
