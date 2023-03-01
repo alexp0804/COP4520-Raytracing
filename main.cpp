@@ -1,44 +1,34 @@
+#include "rt_utilities.h"
+
+#include "color.h"
+#include "hittable_list.h"
+#include "sphere.h"
 #include "vec3.h"
 #include "color.h"
 #include "ray.h"
 #include "hittable.h"
 #include "sphere.h"
+#include "camera.h"
 
 #include <iostream>
 
 using namespace std;
 
-double hit_sphere(const Point3& center, double radius, const Ray& r)
-{
-    Vec3 oc = r.origin() - center;
-    auto a = r.direction().length_squared();
-    auto half_b = dot(oc, r.direction());
-    auto c = oc.length_squared() - radius*radius;
-    auto discriminant = half_b * half_b - a * c;
+Color ray_color(Ray r, const Hittable& world) {
+    HitRecord rec;
 
-    if (discriminant < 0) {
-        return -1.0;
-    } else {
-        return (-half_b - sqrt(discriminant)) / a;
-    }
-}
-
-Color ray_color(Ray r) {
-    auto t = hit_sphere(Point3(0, 0, -1), 0.5, r);
-
-    if (t > 0.0) {
-        Vec3 N = normalized(r.at(t) - Vec3(0, 0, -1));
-        Color C = Color(N.x() + 1, N.y() + 1, N.z() + 1);
+    if (world.hit(r, 0, infinity, rec)) {
+        Color C = rec.normal + Color(1.0, 1.0, 1.0);
         return 0.5 * C;
     }
 
-    Vec3 unit_dir = normalized(r.direction());
-    t = 0.5 * (unit_dir.y() + 1.0);
+    Vec3 unit_direction = normalized(r.direction());
+    auto t = 0.5 * (unit_direction.y() + 1.0);
 
-    Color a = Color(1, 1, 1);
+    Color a = Color(1.0, 1.0, 1.0);
     Color b = Color(0.5, 0.7, 1.0);
 
-    return (1 - t) * a + t * b;
+    return (1.0 - t) * a + t * b;
 }
 
 int main() {
@@ -46,6 +36,11 @@ int main() {
     double aspect_ratio = 16.0 / 9.0;
     int img_width = 400;
     int img_height = (int) img_width / aspect_ratio;
+
+    // World
+    HittableList world;
+    world.add(make_shared<Sphere>(Point3(0, 0, -1), 0.5));
+    world.add(make_shared<Sphere>(Point3(0, -100.5, -1), 100));
 
     // Viewport constants
     double viewport_height = 2.0;
@@ -73,7 +68,8 @@ int main() {
                 Ray(
                     origin,
                     lower_left_corner + u * horizontal + v * vertical - origin
-                )
+                ),
+                world
             );
 
             write_color(std::cout, pixel);
