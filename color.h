@@ -2,12 +2,23 @@
 #define COLOR
 
 #include "vec3.h"
+#include "rt_utilities.h"
 #include <iostream>
 
-void write_color(std::ostream &out, Color pixel_color) {
-    out << (int) (255.999 * pixel_color.x()) << ' '
-        << (int) (255.999 * pixel_color.y()) << ' '
-        << (int) (255.999 * pixel_color.z()) << std::endl;
+void write_color(std::ostream &out, Color pixel_color, int samples_per_pixel) {
+    auto r = pixel_color.x();
+    auto g = pixel_color.y();
+    auto b = pixel_color.z();
+
+    auto scale = 1.0 / samples_per_pixel;
+
+    r *= scale;
+    g *= scale;
+    b *= scale;
+
+    out << (int) (255.999 * clamp(r, 0.0, 0.999)) << ' '
+        << (int) (255.999 * clamp(g, 0.0, 0.999)) << ' '
+        << (int) (255.999 * clamp(b, 0.0, 0.999)) << std::endl;
 }
 
 #endif

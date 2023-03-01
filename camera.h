@@ -19,12 +19,15 @@ public:
     }
 
     Ray get_ray(double u, double v) const {
+        auto hor = horizontal;
+        auto vert = vertical;
+        auto llc = lower_left_corner;
+        auto o = origin;
+
         return Ray(
             origin,
-            lower_left_corner +
-            u * horizontal +
-            v * vertical - origin
-      );
+            llc + u * hor + v * vert - o
+        );    
     }
 
 private:

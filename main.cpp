@@ -18,8 +18,8 @@ Color ray_color(Ray r, const Hittable& world) {
     HitRecord rec;
 
     if (world.hit(r, 0, infinity, rec)) {
-        Color C = rec.normal + Color(1.0, 1.0, 1.0);
-        return 0.5 * C;
+        Color c = (rec.normal + Color(1.0, 1.0, 1.0));
+        return 0.5 * c;
     }
 
     Vec3 unit_direction = normalized(r.direction());
@@ -36,11 +36,15 @@ int main() {
     double aspect_ratio = 16.0 / 9.0;
     int img_width = 400;
     int img_height = (int) img_width / aspect_ratio;
+    int samples_per_pixel = 100;
 
     // World
     HittableList world;
     world.add(make_shared<Sphere>(Point3(0, 0, -1), 0.5));
     world.add(make_shared<Sphere>(Point3(0, -100.5, -1), 100));
+
+    // Camera
+    Camera cam;
 
     // Viewport constants
     double viewport_height = 2.0;
@@ -61,18 +65,17 @@ int main() {
 
         for (int i = 0; i < img_width; i++)
         {
-            double u = (double) i / (img_width - 1);
-            double v = (double) j / (img_height - 1);
+            Color pixel_color(0, 0, 0);
 
-            Color pixel = ray_color(
-                Ray(
-                    origin,
-                    lower_left_corner + u * horizontal + v * vertical - origin
-                ),
-                world
-            );
+            for (int s = 0; s < samples_per_pixel; ++s) {
+                auto u = (i + random_double()) / (img_width - 1);
+                auto v = (j + random_double()) / (img_height - 1);
 
-            write_color(std::cout, pixel);
+                Ray r = cam.get_ray(u, v);
+                pixel_color += ray_color(r, world);
+            }
+
+            write_color(std::cout, pixel_color, samples_per_pixel);
         }
     }
     cerr << endl << "Done!" << endl;
