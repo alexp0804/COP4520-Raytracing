@@ -11,7 +11,11 @@
 #include "camera.h"
 #include "material.h"
 
+#include <algorithm>
 #include <iostream>
+#include <future>
+#include <mutex>
+#include <vector>
 
 using namespace std;
 
@@ -76,25 +80,66 @@ int main() {
     // Render image
     cout << "P3" << endl << img_width << ' ' << img_height << endl << "255" << endl;
 
-    for (int j = img_height - 1; j >= 0; j--)
-    {
-        cerr << "\rLines remaining: " << j << ' ' << flush;
+    const int chunk_size = 16; // number of rows in each chunk
+    const int num_chunks = (img_height + chunk_size - 1) / chunk_size; // number of chunks
 
-        for (int i = 0; i < img_width; i++)
-        {
-            Color pixel_color(0, 0, 0);
+    // We want to have be able to sort the chunks, since the image will be upside down,
+    // we should look into doing the right generation
+    vector<future<vector<pair<int, Color>>>> futures(num_chunks);
 
-            for (int s = 0; s < samples_per_pixel; ++s) {
-                auto u = (i + random_double()) / (img_width - 1);
-                auto v = (j + random_double()) / (img_height - 1);
+    mutex mtx; // declare a mutex for proper storing.
 
-                Ray r = cam.get_ray(u, v);
-                pixel_color += ray_color(r, world, max_depth);
+    for (int chunk = 0; chunk < num_chunks; chunk++) {
+        int start_row = chunk * chunk_size;
+        int end_row = min(start_row + chunk_size, img_height);
+
+        futures[chunk] = async(launch::async, [=, &cam, &world, &mtx]() {
+            vector<pair<int, Color>> chunk_colors;
+
+            for (int j = start_row; j < end_row; j++) {
+                cerr << "\rLines remaining: " << j << ' ' << flush;
+
+                for (int i = 0; i < img_width; i++) {
+                    Color pixel_color(0, 0, 0);
+
+                    for (int s = 0; s < samples_per_pixel; ++s) {
+                        auto u = (i + random_double()) / (img_width - 1);
+                        auto v = (j + random_double()) / (img_height - 1);
+
+                        Ray r = cam.get_ray(u, v);
+                        pixel_color += ray_color(r, world, max_depth);
+                    }
+
+                    // acquire the lock before accessing shared data
+                    lock_guard lock(mtx);
+                    chunk_colors.emplace_back(j, pixel_color);
+                }
             }
 
-            write_color(std::cout, pixel_color, samples_per_pixel);
-        }
+            return chunk_colors;
+        });
     }
+
+    vector<pair<int, Color>> all_colors;
+    for (int chunk = 0; chunk < num_chunks; chunk++) {
+        // Since the final result of the data is wrapped around by an std::future,
+        // we have to retrieve it.
+        auto chunk_colors = futures[chunk].get();
+
+        // Append to the end of the vector.
+        all_colors.insert(all_colors.end(), chunk_colors.begin(), chunk_colors.end());
+    }
+
+    // Now sort the chunks, since some of them might have finished earlier.
+    ranges::sort(all_colors, [](const auto& a, const auto& b) { return a.first < b.first; });
+    // Reverse so the image is not upside-down.
+    ranges::reverse(all_colors);
+
+
+    for (auto& [row, color] : all_colors) {
+        write_color(std::cout, color, samples_per_pixel);
+    }
+
     cerr << endl << "Done!" << endl;
 
     return 0;
