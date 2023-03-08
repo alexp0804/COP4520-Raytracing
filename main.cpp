@@ -99,7 +99,7 @@ int main() {
             for (int j = start_row; j < end_row; j++) {
                 cerr << "\rLines remaining: " << j << ' ' << flush;
 
-                for (int i = 0; i < img_width; i++) {
+                for (int i = img_width - 1; i >= 0; i--) {
                     Color pixel_color(0, 0, 0);
 
                     for (int s = 0; s < samples_per_pixel; ++s) {
@@ -133,7 +133,7 @@ int main() {
     // Now sort the chunks, since some of them might have finished earlier.
     ranges::sort(all_colors, [](const auto& a, const auto& b) { return a.first < b.first; });
     // Reverse so the image is not upside-down.
-    ranges::reverse(all_colors);
+	ranges::reverse(all_colors);
 
 
     for (auto& [row, color] : all_colors) {
