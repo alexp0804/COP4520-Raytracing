@@ -16,8 +16,10 @@
 #include <future>
 #include <mutex>
 #include <vector>
+#include <chrono>
 
 using namespace std;
+using namespace std::chrono;
 
 Color ray_color(Ray r, const Hittable& world, int depth) {
     HitRecord rec;
@@ -77,6 +79,7 @@ int main() {
     Vec3 vertical = Vec3(0, viewport_height, 0);
     Vec3 lower_left_corner = origin - horizontal * 0.5 - vertical * 0.5 - Vec3(0, 0, focal_length);
 
+    auto start = high_resolution_clock::now();
     // Render image
     cerr << "Rendering..." << endl;
     cout << "P3" << endl << img_width << ' ' << img_height << endl << "255" << endl;
@@ -131,7 +134,11 @@ int main() {
         write_color(std::cout, color, samples_per_pixel);
     }
 
+    auto stop = high_resolution_clock::now();
+    auto duration = duration_cast<milliseconds>(stop - start);
+
     cerr << endl << "Done!" << endl;
+    cerr << "Took: " << duration.count() << " milliseconds" << endl;
 
     return 0;
 }
