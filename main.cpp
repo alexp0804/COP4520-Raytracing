@@ -78,13 +78,12 @@ int main() {
     Vec3 lower_left_corner = origin - horizontal * 0.5 - vertical * 0.5 - Vec3(0, 0, focal_length);
 
     // Render image
+    cerr << "Rendering..." << endl;
     cout << "P3" << endl << img_width << ' ' << img_height << endl << "255" << endl;
 
     const int chunk_size = 16; // number of rows in each chunk
     const int num_chunks = (img_height + chunk_size - 1) / chunk_size; // number of chunks
 
-    // We want to have be able to sort the chunks, since the image will be upside down,
-    // we should look into doing the right generation
     vector<future<vector<pair<int, Color>>>> futures(num_chunks);
 
     mutex mtx; // declare a mutex for proper storing.
@@ -96,10 +95,8 @@ int main() {
         futures[chunk] = async(launch::async, [=, &cam, &world, &mtx]() {
             vector<pair<int, Color>> chunk_colors;
 
-            for (int j = start_row; j < end_row; j++) {
-                cerr << "\rLines remaining: " << j << ' ' << flush;
-
-                for (int i = img_width - 1; i >= 0; i--) {
+            for (int j = end_row - 1; j >= start_row; j--) {
+                for (int i = 0; i < img_width; i++) {
                     Color pixel_color(0, 0, 0);
 
                     for (int s = 0; s < samples_per_pixel; ++s) {
@@ -121,7 +118,7 @@ int main() {
     }
 
     vector<pair<int, Color>> all_colors;
-    for (int chunk = 0; chunk < num_chunks; chunk++) {
+    for (int chunk = num_chunks - 1; chunk >= 0; chunk--) {
         // Since the final result of the data is wrapped around by an std::future,
         // we have to retrieve it.
         auto chunk_colors = futures[chunk].get();
@@ -129,12 +126,6 @@ int main() {
         // Append to the end of the vector.
         all_colors.insert(all_colors.end(), chunk_colors.begin(), chunk_colors.end());
     }
-
-    // Now sort the chunks, since some of them might have finished earlier.
-    ranges::sort(all_colors, [](const auto& a, const auto& b) { return a.first < b.first; });
-    // Reverse so the image is not upside-down.
-	ranges::reverse(all_colors);
-
 
     for (auto& [row, color] : all_colors) {
         write_color(std::cout, color, samples_per_pixel);
