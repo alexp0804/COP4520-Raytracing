@@ -165,12 +165,12 @@ inline Vec3 random_in_hemisphere(const Vec3 normal) {
 
     if (dot(in_unit_sphere, normal) > 0.0) {
         return in_unit_sphere;
-    } else {
-        return -in_unit_sphere;
     }
+
+    return -in_unit_sphere;
 }
 
-Vec3 random_unit_vector() {
+inline Vec3 random_unit_vector() {
   return normalized(random_in_unit_sphere());
 }
 
