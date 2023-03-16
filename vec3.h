@@ -170,6 +170,17 @@ inline Vec3 random_in_hemisphere(const Vec3 normal) {
     return -in_unit_sphere;
 }
 
+inline Vec3 random_in_unit_disk()
+{
+	while(true) {
+        auto p = Vec3(random_double(-1, 1), random_double(-1, 1), 0);
+
+        if (p.length_squared() >= 1) continue;
+
+        return p;
+	}
+}
+
 inline Vec3 random_unit_vector() {
   return normalized(random_in_unit_sphere());
 }

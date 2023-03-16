@@ -4,9 +4,9 @@ cmake_minimum_required (VERSION 3.8)
 
 # Add compiler flag for C++20 standard
 if(MSVC)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++20 /MP")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++20 /MP /fp:fast")
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU|Clang")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20 -pthread")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20 -pthread --ffast-math")
 endif()
 
 # Set the name of the project to be the same as its root folder
